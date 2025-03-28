@@ -1,5 +1,5 @@
 import discord
-from discord.commands import Option  # <-- THIS IS IMPORTANT
+from discord.commands import Option 
 from discord.ext import commands
 import os
 from dotenv import load_dotenv
@@ -13,6 +13,8 @@ import asyncio
 load_dotenv()
 bot = commands.Bot(command_prefix="$")
 connections = {}
+global vidid
+vid_ids = ["test","test2"]
 
 
 def is_valid_youtube_url(url):
@@ -66,18 +68,23 @@ class dropTest(discord.ui.View):
         else:
             await interaction.response.send_message(f"option {select.values[0]} pmo")
 
-
 async def youtube_autocomplete(ctx: discord.AutocompleteContext):
+    global vid_ids  # Access the global variable
     search_term = ctx.value.lower()
     if not search_term:
         return []
     try:
         results = await asyncio.to_thread(
-            lambda: YoutubeSearch(search_term, max_results=10).to_dict() 
+            lambda: YoutubeSearch(search_term, max_results=6).to_dict()
         )
         if not results:
             return []
-        return [result["title"] for result in results][:10]
+        
+        # Store the first video's ID
+        
+        return [result["title"] for result in results][:6]
+        return [result["title"] for result in results][:6]
+        vid_ids.append(results["id"])
     except Exception as e:
         print(f"Error during YouTube search: {e}")
         return []
@@ -108,7 +115,9 @@ async def play(
     ctx: discord.ApplicationContext,
     song: Option(str, "Choose a song", autocomplete=youtube_autocomplete)
 ):
-    await ctx.respond(f"You selected: {song}")
+    global current_vid_id  # Access the global variable
+    await ctx.respond(f"You selected: {song} (Video ID: {vid_ids})")
+    
 
 
 @bot.slash_command(name="playurl", description="Play a song by YouTube URL")

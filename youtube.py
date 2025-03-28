@@ -1,7 +1,7 @@
 from pytubefix import YouTube as youtube
 import os
-
-yt = youtube("https://www.youtube.com/watch?v=mhgOQmwaic4")
+id = "onRk0sjSgFU"
+yt = youtube(f"https://youtube.com/watch/{id}")
 
 audio = yt.streams.filter(only_audio=True).order_by('abr').last()
 
