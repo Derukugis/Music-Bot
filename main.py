@@ -14,7 +14,7 @@ load_dotenv()
 bot = commands.Bot(command_prefix="$")
 connections = {}
 global vidid
-vid_ids = ["test","test2"]
+vid_ids = []
 
 
 def is_valid_youtube_url(url):
@@ -69,7 +69,7 @@ class dropTest(discord.ui.View):
             await interaction.response.send_message(f"option {select.values[0]} pmo")
 
 async def youtube_autocomplete(ctx: discord.AutocompleteContext):
-    global vid_ids  # Access the global variable
+    global vid_ids  
     search_term = ctx.value.lower()
     if not search_term:
         return []
@@ -80,11 +80,11 @@ async def youtube_autocomplete(ctx: discord.AutocompleteContext):
         if not results:
             return []
         
-        # Store the first video's ID
+        # Store video IDs mapped to titles
+        vid_ids = {result["title"]: result["id"] for result in results}
         
-        return [result["title"] for result in results][:6]
-        return [result["title"] for result in results][:6]
-        vid_ids.append(results["id"])
+        return list(vid_ids.keys())  # Return only video titles
+        
     except Exception as e:
         print(f"Error during YouTube search: {e}")
         return []
@@ -115,8 +115,38 @@ async def play(
     ctx: discord.ApplicationContext,
     song: Option(str, "Choose a song", autocomplete=youtube_autocomplete)
 ):
-    global current_vid_id  # Access the global variable
-    await ctx.respond(f"You selected: {song} (Video ID: {vid_ids})")
+    voice = ctx.author.voice
+    if not voice:
+        await ctx.respond("Join a VC first, unc!")
+        return None
+    else:
+        pass
+    
+        vc = connections.get(ctx.guild.id)
+
+        global vidid
+        vidid = vid_ids.get(song, "Unknown ID")  # Store the selected video ID
+        await ctx.respond(f"You selected: {song} (Video ID: {vidid})")  
+
+        url = f"https://youtube.com/watch/{vidid}"
+        await ctx.respond(url)
+
+        yt = youtube(url)
+
+        audio = yt.streams.filter(only_audio=True).order_by('abr').last()
+        
+        
+        path = os.path.join(os.getcwd(), "audio")
+
+        out_file = audio.download(output_path=path)
+
+        base, ext = os.path.splitext(out_file)
+        new_file = base + '.wav'
+        if os.path.isfile(new_file) == True:
+            await ctx.respond("file already exists, reusing file...")
+        if os.path.isfile(new_file) == False:
+            os.rename(out_file, new_file)
+
     
 
 
