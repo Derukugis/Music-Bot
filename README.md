@@ -12,7 +12,7 @@ python main.py
 ```
 
 <h2>Commands</h2>
-<p1 line-height="1.8";>
+<p1 line-height="10";>
 /play *song name* - Play a song from youtube<br>
 /playurl *url* - play a url from YouTube URL<br>
 </p1>
