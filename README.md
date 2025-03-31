@@ -59,4 +59,4 @@ sudo apt install ffmpeg
 /pause - Pause the current playback<br><br>
 /joinvoice - Force the bot to join your current voice channel without playing anything.<br><br>
 /stop - Cancel the current playback, bot will leave the voice channel.<br><br>
-/validate _URL_ check if a youtube URL is valid.
+/validate - _URL_ check if a youtube URL is valid.
