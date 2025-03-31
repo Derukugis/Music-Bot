@@ -12,7 +12,6 @@ python main.py
 ```
 
 <h2>Commands</h2>
-<p1 line-height="10";>
-/play *song name* - Play a song from youtube<br>
-/playurl *url* - play a url from YouTube URL<br>
-</p1>
+
+/play _song name_ - Play a song from youtube<br>
+/playurl _url_ - play a url from YouTube URL<br>
