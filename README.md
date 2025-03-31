@@ -4,7 +4,7 @@
 <h2>Usage</h2>
 
 Installing and running
-```python
+```bash
 git clone https://github.com/Derukugis/Music-Bot.git
 cd Music-Bot
 pip install -r requirements.txt
