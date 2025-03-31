@@ -314,21 +314,30 @@ async def button(ctx):
     await ctx.respond("A song is already playing.", view=Qadd()) # Send a message with our View class that contains the button
 
 
-@bot.slash_command(name="stop", description="Stop the music")
+@bot.slash_command(name="stop", description="Stop playback")
 async def stop(ctx: discord.ApplicationContext):
     vc = connections.get(ctx.guild.id)
     if vc and vc.is_playing():
         vc.stop()
-        await ctx.respond("Stopped the audio.")
+        await ctx.respond("Stopping playback")
     else:
         await ctx.respond("No audio is playing.")
 
-@bot.slash_command(name="pause", description="Pause the music")
+@bot.slash_command(name="pause", description="Pause playback")
 async def pause(ctx: discord.ApplicationContext):
     vc = connections.get(ctx.guild.id)
     if vc and vc.is_playing():
         vc.pause()
-        await ctx.respond("Paused the audio.")
+        await ctx.respond("Pausing playback")
+    else:
+        await ctx.respond("No audio is playing.")
+
+@bot.slash_command(name="resume", description="Resume playback")
+async def pause(ctx: discord.ApplicationContext):
+    vc = connections.get(ctx.guild.id)
+    if vc and vc.is_playing():
+        vc.play()
+        await ctx.respond("Resuming playback.")
     else:
         await ctx.respond("No audio is playing.")
 
