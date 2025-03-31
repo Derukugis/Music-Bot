@@ -12,5 +12,8 @@ python main.py
 ```
 
 <h2>Commands</h2>
+
+```
 /play *song name* - Play a song from youtube
 /playurl *url* - play a url from YouTube URL
+```
