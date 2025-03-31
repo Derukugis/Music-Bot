@@ -3,13 +3,32 @@
 
 <h2>Usage</h2>
 
-Installing and running
+Installing GoonTunes
 ```bash
 git clone https://github.com/Derukugis/Music-Bot.git
 cd Music-Bot
 pip install -r requirements.txt
 python main.py
 ```
+GoonTunes also requires [FFmpeg](https://github.com/BtbN/FFmpeg-Builds/releases) to be installed on your system.
+<details open>
+<summary>Windows</summary>
+<br>
+https://github.com/BtbN/FFmpeg-Builds/releases
+</details>
+<details open>
+<summary>MacOS</summary>
+<br>
+  
+```bash
+brew install ffmpeg
+```
+</details>
+<details open>
+<summary>Linux</summary>
+<br>
+
+</details>
 
 <h2>Commands</h2>
 
