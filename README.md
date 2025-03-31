@@ -13,5 +13,5 @@ python main.py
 
 <h2>Commands</h2>
 
-/play _song name_ - Play a song from youtube<br>
-/playurl _url_ - play a url from YouTube URL<br>
+# /play _song name_ - Play a song from youtube<br>
+# /playurl _url_ - play a url from YouTube URL<br>
