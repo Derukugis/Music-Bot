@@ -11,12 +11,12 @@ pip install -r requirements.txt
 python main.py
 ```
 GoonTunes also requires [FFmpeg](https://github.com/BtbN/FFmpeg-Builds/releases) to be installed on your system.
-<details open>
+<details>
 <summary>Windows</summary>
 <br>
 https://github.com/BtbN/FFmpeg-Builds/releases
 </details>
-<details open>
+<details>
 <summary>MacOS</summary>
 <br>
   
@@ -24,9 +24,30 @@ https://github.com/BtbN/FFmpeg-Builds/releases
 brew install ffmpeg
 ```
 </details>
-<details open>
+<details>
 <summary>Linux</summary>
 <br>
+
+AUR package (Cross-platform)
+```bash
+yay -S ffmpeg
+```
+
+Arch liux
+```bash
+sudo pacman -S ffmpeg
+```
+
+Debian
+```bash
+sudo apt-get install ffmpeg
+```
+
+Ubuntu
+```bash
+sudo apt install ffmpeg
+```
+
 
 </details>
 
