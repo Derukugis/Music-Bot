@@ -53,5 +53,10 @@ sudo apt install ffmpeg
 
 <h2>Commands</h2>
 
-/play _song name_ - Play a song from youtube<br><br>
-/playurl _url_ - play a url from YouTube URL<br>
+/menu - Bring up playback menu **[WIP]**
+/play _Song Name_ - Play a song from youtube<br><br>
+/playurl _URL_ - play a url from YouTube URL<br><br>
+/pause - Pause the current playback<br><br>
+/joinvoice - Force the bot to join your current voice channel without playing anything.<br><br>
+/stop - Cancel the current playback, bot will leave the voice channel.<br><br>
+/validate _URL_ check if a youtube URL is valid.
