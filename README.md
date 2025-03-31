@@ -3,8 +3,12 @@
 
 <h2>Usage</h2>
 
-```ruby
-test
+Installing and running
+```python
+git clone https://github.com/Derukugis/Music-Bot.git
+cd Music-Bot
+pip install -r requirements.txt
+python main.py
 ```
 
 <h2>Commands</h2>
