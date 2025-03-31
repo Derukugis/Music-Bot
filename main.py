@@ -10,12 +10,22 @@ import requests
 from youtube_search import YoutubeSearch
 import asyncio
 
+
 load_dotenv()
 bot = commands.Bot(command_prefix="$")
 connections = {}
 global vidid
 vid_ids = []
-
+global currentURL
+currentURL = "https://www.youtube.com/watch?v=XFkzRNyygfk"
+global current
+current = "Creep"
+global currentArtist
+currentArtist = "Radiohead"
+global progress
+progress = "2:45"
+global length
+length = "3:30"
 
 def is_valid_youtube_url(url):
     try:
@@ -31,6 +41,11 @@ def is_valid_youtube_url(url):
         print(f"An error occurred: {e}")
         return False
 
+@bot.event
+async def on_ready():
+    bot.add_view(MyView()) # Registers a View for persistent listening
+
+
 
 class Qadd(discord.ui.View):
     @discord.ui.button(label="Play now", style=discord.ButtonStyle.success)
@@ -41,6 +56,49 @@ class Qadd(discord.ui.View):
     @discord.ui.button(label="Add to queue", style=discord.ButtonStyle.secondary)
     async def first_button_callback(self, button, interaction):
         await interaction.response.send_message("Adding song to queue")
+
+class Menu(discord.ui.View):
+    # row 0
+    @discord.ui.button(label="", emoji="⏮️", style=discord.ButtonStyle.secondary)
+    async def last_track(self, button, interaction):
+        await interaction.response.send_message("Playing last track..")
+
+    @discord.ui.button(label="", emoji="⏪", style=discord.ButtonStyle.secondary)
+    async def back_15(self, button, interaction):
+        await interaction.response.send_message("Playing last track..")
+
+    @discord.ui.button(label="", emoji="⏯️", style=discord.ButtonStyle.success)
+    async def play_pause(self, button, interaction):
+        await interaction.response.send_message("Playing song now...")
+
+    @discord.ui.button(label="", emoji="⏩", style=discord.ButtonStyle.secondary)
+    async def forward_15_callback(self, button, interaction):
+        await interaction.response.send_message("Playing last track..")
+
+    @discord.ui.button(label="", emoji="⏭️", style=discord.ButtonStyle.secondary)
+    async def next_track(self, button, interaction):
+        await interaction.response.send_message("Playing next track")
+    # row 1
+    @discord.ui.button(label="", emoji="🔇", style=discord.ButtonStyle.secondary)
+    async def mute(self, button, interaction):
+        await interaction.response.send_message("Muting playback")
+    
+    @discord.ui.button(label="", emoji="🔀", style=discord.ButtonStyle.secondary)
+    async def shuffle(self, button, interaction):
+        await interaction.response.send_message("Shuffling tracks in queue")
+
+    @discord.ui.button(label="", emoji="⏹️", style=discord.ButtonStyle.danger)
+    async def stop(self, button, interaction):
+        await interaction.response.send_message("Stopping playback")
+
+    @discord.ui.button(label="", emoji="🔁", style=discord.ButtonStyle.secondary)
+    async def loop(self, button, interaction):
+        await interaction.response.send_message("Looping current track")
+    
+    @discord.ui.button(label="", emoji="🎶", style=discord.ButtonStyle.secondary)
+    async def queue(self, button, interaction):
+        await interaction.response.send_message("Current audio queue:")
+
 
 class dropTest(discord.ui.View):
     @discord.ui.select( # the decorator that lets you specify the properties of the select menu
@@ -96,6 +154,27 @@ async def on_ready():
     print(f"{bot.user} is ready and online!")
 
 
+
+@bot.slash_command(name="menu", description="bring up the playback menu.")
+async def embed_example(interaction: discord.Interaction):
+    # Create the embed
+    embed = discord.Embed(
+        title="Now Playing",
+        color=discord.Colour.blurple(),
+    )
+    embed.set_thumbnail(url="https://cdns-images.dzcdn.net/images/cover/f08424290260e58c6d76275253b316fd/1900x1900-000000-80-0-0.jpg")
+    
+    # Format the URL with custom display text
+    embed.add_field(name="Track", value=f"[{current}]({currentURL})", inline=False)
+    embed.add_field(name="Artist", value=f"{currentArtist}", inline=False)
+    percentage = None
+    embed.add_field(name="Progress", value=f"{progress} |⎯⎯⎯⎯⎯⎯⎯⎯■⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯| {length}", inline=False)
+
+    view = Menu()
+    await interaction.response.send_message(embed=embed, view=view)
+
+    
+
 @bot.slash_command(name="test", description="test command") # Test command
 async def test(ctx: discord.ApplicationContext):
     await ctx.respond("ts pmo heavy...")
@@ -109,6 +188,36 @@ async def joinvoice(ctx: discord.ApplicationContext):
         await ctx.respond("okay unc")
     vc = await voice.channel.connect()  # Connect to the voice channel the author is in.
     connections.update({ctx.guild.id: vc})  # Updating the cache with the guild and channel.
+
+@bot.slash_command(name="forceplay", description="Forecefully play a song for testing purposes.")
+async def joinvoice(ctx: discord.ApplicationContext):
+    voice = ctx.author.voice
+    if not voice:
+        await ctx.respond("Join a VC first, unc!")
+        return None
+    else: 
+        pass
+
+        vc = connections.get(ctx.guild.id)
+
+        audio_file = "Radiohead - Creep.wav"
+        
+        if vc is None:
+            vc = await voice.channel.connect()
+            connections.update({ctx.guild.id: vc})
+
+        if not os.path.isfile(audio_file):
+            await ctx.respond(f"Audio file not found at {audio_file}")
+            return
+
+        if not vc.is_playing():
+            print("Joining vc...")
+            await ctx.respond("Playing your song now")
+            audio_source = discord.FFmpegPCMAudio(audio_file)
+
+            vc.play(audio_source, after=lambda e: print(f'Audio finished with error: {e}'))
+        else:
+            await ctx.respond("A song is already playing.", view=Qadd()) # Send a message with our View class that contains the button
 
 @bot.slash_command(name="play", description="Play a song by YouTube name.")
 async def play(
@@ -151,7 +260,7 @@ async def play(
 
 
 @bot.slash_command(name="playurl", description="Play a song by YouTube URL")
-async def add(ctx, url: discord.Option(str)):
+async def forceplay(ctx: discord.ApplicationContext):
     voice = ctx.author.voice
     if not voice:
         await ctx.respond("Join a VC first, unc!")
@@ -235,4 +344,3 @@ async def add(ctx, url: discord.Option(str)):
         await ctx.respond("The URL is invalid or the video is unavailable.")
 
 bot.run(os.getenv('TOKEN'))
-print("hi!")d
