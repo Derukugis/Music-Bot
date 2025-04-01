@@ -1,4 +1,4 @@
-<h1 align="center">GoonTunes Music Bot</h1>
+<h1 align="center">GoonTunes</h1>
 <p>Goontunes is a free, fast and open source Discord music bot with a focus of high audio quality.</p>
 <p><i>This project is currently a work in progress, there will be bugs and missing features</i></p>
 
