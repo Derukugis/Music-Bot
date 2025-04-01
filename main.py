@@ -41,10 +41,6 @@ def is_valid_youtube_url(url):
         print(f"An error occurred: {e}")
         return False
 
-@bot.event
-async def on_ready():
-    bot.add_view(MyView()) # Registers a View for persistent listening
-
 
 
 class Qadd(discord.ui.View):
