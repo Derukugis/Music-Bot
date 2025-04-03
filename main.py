@@ -64,8 +64,21 @@ class Menu(discord.ui.View):
         await interaction.response.send_message("Playing last track..")
 
     @discord.ui.button(label="", emoji="⏯️", style=discord.ButtonStyle.success)
-    async def play_pause(self, button, interaction):
-        await interaction.response.send_message("Playing song now...")
+    async def play_pause(self, button: discord.ui.Button, interaction: discord.Interaction):
+        guild = interaction.guild
+        vc = connections.get(guild.id)
+        if vc is None:
+            await interaction.response.send_message("Bot is not connected to a voice channel.", ephemeral=True)
+            return
+        if vc and vc.is_playing():
+            await interaction.response.send_message("Pausing playback", ephemeral=True)
+            vc.pause()
+        elif vc.is_paused():
+            vc.resume()
+            await interaction.response.send_message("Resuming playback", ephemeral=True)
+        else: 
+            await interaction.response.send_message("No audio is playing.", ephemeral=True)
+    
 
     @discord.ui.button(label="", emoji="⏩", style=discord.ButtonStyle.secondary)
     async def forward_15_callback(self, button, interaction):
@@ -84,8 +97,16 @@ class Menu(discord.ui.View):
         await interaction.response.send_message("Shuffling tracks in queue")
 
     @discord.ui.button(label="", emoji="⏹️", style=discord.ButtonStyle.danger)
-    async def stop(self, button, interaction):
-        await interaction.response.send_message("Stopping playback")
+    async def stop(self, button: discord.ui.Button, interaction: discord.Interaction):
+        guild = interaction.guild
+        vc = connections.get(guild.id)
+        if vc is None:
+            await interaction.response.send_message("Bot is not connected to a voice channel.", ephemeral=True)
+            return
+        else:
+            await interaction.response.send_message("Ending playback.")
+            await vc.disconnect()
+            
 
     @discord.ui.button(label="", emoji="🔁", style=discord.ButtonStyle.secondary)
     async def loop(self, button, interaction):
@@ -123,10 +144,7 @@ class dropTest(discord.ui.View):
             await interaction.response.send_message(f"option {select.values[0]} pmo")
 
 async def youtube_autocomplete(ctx: discord.AutocompleteContext):
-    global vid_ids  
     search_term = ctx.value.lower()
-    if not search_term:
-        return []
     try:
         results = await asyncio.to_thread(
             lambda: YoutubeSearch(search_term, max_results=6).to_dict()
@@ -134,11 +152,21 @@ async def youtube_autocomplete(ctx: discord.AutocompleteContext):
         if not results:
             return []
         
-        # Store video IDs mapped to titles
-        vid_ids = {result["title"]: result["id"] for result in results}
-        
-        return list(vid_ids.keys())  # Return only video titles
-        
+        options = []
+        for result in results:
+            title = result["title"].replace('\n', ' ').strip()
+            channel = result["channel"].replace('\n', ' ').strip()
+            video_id = result["id"]
+            
+            if title.casefold().count(channel.casefold()) == 1:
+                title = title.casefold().replace(channel.casefold(), '', 1).strip()
+                title = title.replace(" - ", '', 1).strip()
+            
+            formatted_option = f"{channel} - {title}"
+            options.append(formatted_option)
+     
+        return options  # Return list of formatted options
+    
     except Exception as e:
         print(f"Error during YouTube search: {e}")
         return []
@@ -229,8 +257,8 @@ async def play(
     
         vc = connections.get(ctx.guild.id)
 
-        global vidid
-        vidid = vid_ids.get(song, "Unknown ID")  # Store the selected video ID
+        global result
+        vidid = result.get(song, "Unknown ID")  # Store the selected video ID
         await ctx.respond(f"You selected: {song} (Video ID: {vidid})")  
 
         url = f"https://youtube.com/watch/{vidid}"
