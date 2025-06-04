@@ -1,6 +1,6 @@
 <h1 align="center">GoonTunes</h1>
 <p>Goontunes is a free, fast and open source Discord music bot with a focus of high audio quality.</p>
-<p><i>This project is currently a work in progress, there will be bugs and missing features</i></p>
+<p><i>This project is very much work in progress, there will be bugs and missing features</i></p>
 
 <h2>Installing and running GoonTunes</h2>
 
