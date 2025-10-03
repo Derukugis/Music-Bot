@@ -979,13 +979,13 @@ async def show_queue(ctx: discord.ApplicationContext):
 @bot.slash_command(name="help", description="Show bot commands and features")
 async def help_command(ctx: discord.ApplicationContext):
     embed = discord.Embed(
-        title="🎵 Music Bot Commands",
+        title="Music Bot Commands",
         description="Here are all the available commands:",
         color=discord.Colour.blurple()
     )
     
     embed.add_field(
-        name="🎶 Playback Commands",
+        name="Playback Commands",
         value="`/play` - Search and play a song\n"
               "`/playurl` - Play from YouTube URL\n"
               "`/playlist` - Play entire YouTube playlist\n"
@@ -994,7 +994,7 @@ async def help_command(ctx: discord.ApplicationContext):
     )
     
     embed.add_field(
-        name="⏯️ Control Commands", 
+        name="⏯Control Commands", 
         value="`/pause` - Pause playback\n"
               "`/resume` - Resume playback\n"
               "`/stop` - Stop and disconnect\n"
@@ -1004,7 +1004,7 @@ async def help_command(ctx: discord.ApplicationContext):
     )
     
     embed.add_field(
-        name="📋 Queue & History Commands",
+        name="Queue & History Commands",
         value="`/queue` - Show current queue\n"
               "`/history` - Show recently played songs\n"
               "`/clearqueue` - Clear the queue\n"
@@ -1013,7 +1013,7 @@ async def help_command(ctx: discord.ApplicationContext):
     )
     
     embed.add_field(
-        name="🔧 Utility Commands",
+        name="Utility Commands",
         value="`/joinvoice` - Join your voice channel\n"
               "`/validate` - Check if YouTube URL is valid",
         inline=False
