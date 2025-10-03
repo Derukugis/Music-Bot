@@ -1,4 +1,3 @@
-
 import discord
 from discord.commands import Option 
 from discord.ext import commands
@@ -962,13 +961,37 @@ async def show_queue(ctx: discord.ApplicationContext):
     
     if queue:
         queue_text = ""
-        for i, song in enumerate(queue[:10]):  # Show first 10 songs
-            queue_text += f"{i+1}. **{song['title']}** by {song['artist']}\n"
+        max_length = 1000  # Leave some buffer below Discord's 1024 character limit
+        songs_shown = 0
         
-        if len(queue) > 10:
-            queue_text += f"... and {len(queue) - 10} more songs"
+        for i, song in enumerate(queue):
+            # Truncate title and artist if they're too long
+            title = song['title'][:50] + "..." if len(song['title']) > 50 else song['title']
+            artist = song['artist'][:30] + "..." if len(song['artist']) > 30 else song['artist']
             
-        embed.add_field(name="Up Next", value=queue_text, inline=False)
+            song_line = f"{i+1}. **{title}** by {artist}\n"
+            
+            # Check if adding this song would exceed the limit
+            if len(queue_text) + len(song_line) > max_length:
+                break
+                
+            queue_text += song_line
+            songs_shown += 1
+        
+        # Add "more songs" indicator if we couldn't show all songs
+        if songs_shown < len(queue):
+            remaining = len(queue) - songs_shown
+            more_text = f"... and {remaining} more song{'s' if remaining > 1 else ''}"
+            # Make sure we have room for the "more" text
+            if len(queue_text) + len(more_text) <= max_length:
+                queue_text += more_text
+            else:
+                # If we can't fit the "more" text, remove the last song and add it
+                lines = queue_text.strip().split('\n')
+                if len(lines) > 1:
+                    queue_text = '\n'.join(lines[:-1]) + '\n' + more_text
+            
+        embed.add_field(name="Up Next", value=queue_text if queue_text.strip() else "Queue is too large to display properly", inline=False)
         embed.set_footer(text=f"Total songs in queue: {len(queue)}")
     else:
         embed.add_field(name="Queue", value="Queue is empty", inline=False)
@@ -994,7 +1017,7 @@ async def help_command(ctx: discord.ApplicationContext):
     )
     
     embed.add_field(
-        name="⏯Control Commands", 
+        name="Control Commands", 
         value="`/pause` - Pause playback\n"
               "`/resume` - Resume playback\n"
               "`/stop` - Stop and disconnect\n"
