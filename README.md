@@ -1,5 +1,7 @@
 <h1 align="center">GoonTunes</h1>
-<p>GoonTunes is a free, fast an<h2>Commands</h2>
+<p>Goontunes is a discord music bot with support for youtube playback.</p>
+
+<h2>Commands</h2>
 
 
 **/play** _Song Name_ - Search and play a song from YouTube with autocomplete<br>
@@ -19,24 +21,6 @@
 **/validate** _URL_ - Check if a YouTube URL or playlist is valid<br>
 **/help** - Show all available commands and features<br>
 
-
-
-
-<h2>Setup</h2>
-
-<h3>Discord Bot Setup</h3>
-
-1. Go to the [Discord Developer Portal](https://discord.com/developers/applications)<br>
-2. Create a new application and add a bot<br>
-3. Copy the bot token<br>
-4. Create a `.env` file in the project directory:<br>
-
-```
-TOKEN=your_discord_bot_token_here
-```
-
-5. Invite the bot to your server with appropriate permissions<br>rce Discord music bot with a focus on high audio quality and rich interactive features.</p>
-<p><i>GoonTunes supports YouTube songs, playlists, queue management, song history, loop modes, and provides a comprehensive interactive menu system.</i></p>
 
 
 <h2>Installing and running GoonTunes</h2>
