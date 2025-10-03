@@ -28,6 +28,7 @@ global progress
 progress = "2:45"
 global length
 length = "3:30"
+video_search_cache = {}
 
 def is_valid_youtube_url(url):
     try:
@@ -119,6 +120,34 @@ class Menu(discord.ui.View):
         await interaction.response.send_message("Current audio queue:")
 
 
+async def youtube_autocomplete(ctx: discord.AutocompleteContext):
+    search_term = ctx.value.lower()
+    try:
+        results = await asyncio.to_thread(
+            lambda: YoutubeSearch(search_term, max_results=6).to_dict()
+        )
+        if not results:
+            return []
+
+        global video_search_cache
+        video_search_cache = {} 
+
+        options = []
+        for result in results:
+            title = result["title"].replace('\n', ' ').strip()
+            channel = result["channel"].replace('\n', ' ').strip()
+            video_id = result["id"]
+
+            formatted_option = f"{channel} - {title}"
+            video_search_cache[formatted_option] = video_id
+            options.append(formatted_option)
+
+        return options
+    except Exception as e:
+        print(f"Error during YouTube search: {e}")
+        return []
+
+
 class dropTest(discord.ui.View):
     @discord.ui.select( # the decorator that lets you specify the properties of the select menu
         placeholder = "ts is a test", # the placeholder text that will be displayed if nothing is selected
@@ -144,34 +173,7 @@ class dropTest(discord.ui.View):
             await interaction.response.send_message(f"option {select.values[0]} does not pmo")
         else:
             await interaction.response.send_message(f"option {select.values[0]} pmo")
-
-async def youtube_autocomplete(ctx: discord.AutocompleteContext):
-    search_term = ctx.value.lower()
-    try:
-        results = await asyncio.to_thread(
-            lambda: YoutubeSearch(search_term, max_results=6).to_dict()
-        )
-        if not results:
-            return []
-        
-        options = []
-        for result in results:
-            title = result["title"].replace('\n', ' ').strip()
-            channel = result["channel"].replace('\n', ' ').strip()
-            video_id = result["id"]
-            
-            if title.casefold().count(channel.casefold()) == 1:
-                title = title.casefold().replace(channel.casefold(), '', 1).strip()
-                title = title.replace(" - ", '', 1).strip()
-            
-            formatted_option = f"{channel} - {title}"
-            options.append(formatted_option)
-     
-        return options  # Return list of formatted options
     
-    except Exception as e:
-        print(f"Error during YouTube search: {e}")
-        return []
 
 
 
@@ -190,7 +192,6 @@ async def embed_example(interaction: discord.Interaction):
     )
     embed.set_thumbnail(url="https://cdns-images.dzcdn.net/images/cover/f08424290260e58c6d76275253b316fd/1900x1900-000000-80-0-0.jpg")
     
-    # Format the URL with custom display text
     embed.add_field(name="Track", value=f"[{current}]({currentURL})", inline=False)
     embed.add_field(name="Artist", value=f"{currentArtist}", inline=False)
     percentage = None
@@ -199,24 +200,24 @@ async def embed_example(interaction: discord.Interaction):
     view = Menu()
     await interaction.response.send_message(embed=embed, view=view)
 
-    
 
-@bot.slash_command(name="test", description="test command") # Test command
-async def test(ctx: discord.ApplicationContext):
-    await ctx.respond("ts pmo heavy...")
-
-@bot.slash_command(name="joinvoice", description="Join a voice channel") # Command to join voice channel
+@bot.slash_command(name="joinvoice", description="Join a voice channel")
 async def joinvoice(ctx: discord.ApplicationContext):
+    await ctx.defer()  # <-- Add this line!
+
     voice = ctx.author.voice
     if not voice:
-        await ctx.respond("join a vc unc")
-    else: 
-        await ctx.respond("okay unc")
-    vc = await voice.channel.connect()  # Connect to the voice channel the author is in.
-    connections.update({ctx.guild.id: vc})  # Updating the cache with the guild and channel.
+        await ctx.respond("Join a VC first, unc!")
+        return
+    
+    vc = await voice.channel.connect()
+    connections.update({ctx.guild.id: vc})
+    
+    await ctx.respond("heh.. i heckin joined")
+
 
 @bot.slash_command(name="forceplay", description="Forecefully play a song for testing purposes.")
-async def joinvoice(ctx: discord.ApplicationContext):
+async def forceplay(ctx: discord.ApplicationContext):
     voice = ctx.author.voice
     if not voice:
         await ctx.respond("Join a VC first, unc!")
@@ -226,7 +227,7 @@ async def joinvoice(ctx: discord.ApplicationContext):
 
         vc = connections.get(ctx.guild.id)
 
-        audio_file = "Radiohead - Creep.wav"
+        audio_file = "Radiohead - Creep.flac"
         
         if vc is None:
             vc = await voice.channel.connect()
@@ -243,50 +244,66 @@ async def joinvoice(ctx: discord.ApplicationContext):
 
             vc.play(audio_source, after=lambda e: print(f'Audio finished with error: {e}'))
         else:
-            await ctx.respond("A song is already playing.", view=Qadd()) # Send a message with our View class that contains the button
+            await ctx.respond("A song is already playing.", view=Qadd())
 
 @bot.slash_command(name="play", description="Play a song by YouTube name.")
 async def play(
     ctx: discord.ApplicationContext,
-    song: Option(str, "Choose a song", autocomplete=youtube_autocomplete)
+    song: str = Option(description="Choose a song", autocomplete=youtube_autocomplete)
 ):
     voice = ctx.author.voice
     if not voice:
         await ctx.respond("Join a VC first, unc!")
-        return None
+        return
+
+    vc = connections.get(ctx.guild.id)
+
+    global video_search_cache
+    vidid = video_search_cache.get(song)
+
+    if not vidid:
+        await ctx.respond("Couldn't find video ID for the selected song.")
+        return
+
+    await ctx.respond(f"You selected: {song} (Video ID: {vidid})")
+
+    url = f"https://youtube.com/watch?v={vidid}"
+    await ctx.respond(url)
+
+    yt = youtube(url)
+    audio = yt.streams.filter(only_audio=True).order_by('abr').last()
+    
+    path = os.path.join(os.getcwd(), "audio")
+    out_file = audio.download(output_path=path)
+
+    base, ext = os.path.splitext(out_file)
+    new_file = base + '.flac'
+
+    if os.path.isfile(new_file):
+        await ctx.respond("File already exists, reusing file...")
     else:
-        pass
-    
-        vc = connections.get(ctx.guild.id)
+        os.rename(out_file, new_file)
 
-        global result
-        vidid = result.get(song, "Unknown ID")  # Store the selected video ID
-        await ctx.respond(f"You selected: {song} (Video ID: {vidid})")  
+    if vc is None:
+        vc = await voice.channel.connect()
+        connections.update({ctx.guild.id: vc})
 
-        url = f"https://youtube.com/watch/{vidid}"
-        await ctx.respond(url)
+    if not os.path.isfile(new_file):
+        await ctx.respond(f"Audio file not found at {new_file}")
+        return
 
-        yt = youtube(url)
-
-        audio = yt.streams.filter(only_audio=True).order_by('abr').last()
-        
-        
-        path = os.path.join(os.getcwd(), "audio")
-
-        out_file = audio.download(output_path=path)
-
-        base, ext = os.path.splitext(out_file)
-        new_file = base + '.wav'
-        if os.path.isfile(new_file) == True:
-            await ctx.respond("file already exists, reusing file...")
-        if os.path.isfile(new_file) == False:
-            os.rename(out_file, new_file)
-
-    
+    # Play the audio
+    if not vc.is_playing():
+        print("Playing audio...")
+        await ctx.respond("Playing your song now!")
+        audio_source = discord.FFmpegPCMAudio(new_file)
+        vc.play(audio_source, after=lambda e: print(f'Audio finished with error: {e}'))
+    else:
+        await ctx.respond("A song is already playing.", view=Qadd())
 
 
 @bot.slash_command(name="playurl", description="Play a song by YouTube URL")
-async def forceplay(ctx: discord.ApplicationContext):
+async def playurl(ctx: discord.ApplicationContext, url: str = Option(description="YouTube URL to play")):
     voice = ctx.author.voice
     if not voice:
         await ctx.respond("Join a VC first, unc!")
@@ -310,7 +327,7 @@ async def forceplay(ctx: discord.ApplicationContext):
         out_file = audio.download(output_path=path)
 
         base, ext = os.path.splitext(out_file)
-        new_file = base + '.wav'
+        new_file = base + '.flac'
         if os.path.isfile(new_file) == True:
             await ctx.respond("file already exists, reusing file...")
         if os.path.isfile(new_file) == False:
@@ -332,12 +349,12 @@ async def forceplay(ctx: discord.ApplicationContext):
             vc.play(audio_source, after=lambda e: print(f'Audio finished with error: {e}'))
         else:
             async def button(ctx):
-                await ctx.respond("A song is already playing.", view=Qadd()) # Send a message with our View class that contains the button
+                await ctx.respond("A song is already playing.", view=Qadd()) 
 
 
 @bot.slash_command(name="qtest", description="For testing the queue system")
 async def button(ctx):
-    await ctx.respond("A song is already playing.", view=Qadd()) # Send a message with our View class that contains the button
+    await ctx.respond("A song is already playing.", view=Qadd()) 
 
 
 @bot.slash_command(name="stop", description="Stop playback")
@@ -372,7 +389,7 @@ async def droptest(ctx):
     await ctx.respond("Dropdown Menu Test", view=dropTest())
 
 @bot.slash_command(name="validate", description="Validate a youtube URL")
-async def add(ctx, url: discord.Option(str)):
+async def add(ctx, url: str = Option(description="YouTube URL to validate")):
     if is_valid_youtube_url(url):
         await ctx.respond("The URL is valid")
     else:
